@@ -16,7 +16,8 @@
       'pubsub': '../bower_components/jquery-tiny-pubsub/src/tiny-pubsub',
       'utils': '../scripts/utils',
       'pixi': '../bower_components/pixi/bin/pixi',
-      'stats': '../bower_components/stats.js/build/stats.min'
+      'stats': '../bower_components/stats.js/build/stats.min',
+      'explore': '../scripts/explore'
     },
 
     include: ['lorax/lorax-app'],
