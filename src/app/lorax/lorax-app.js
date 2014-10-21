@@ -23,6 +23,7 @@ define([
   'lorax/directives/chart-terms-and-conditions',
   'lorax/directives/chart-common-languages',
   'lorax/directives/chart-lobbying-costs',
+  'lorax/directives/explore-canvas',
 
   // services
   'lorax/services/window',
@@ -56,6 +57,7 @@ define([
   ChartTermsAndConditionsDirective,
   ChartCommonLanguagesDirective,
   ChartLobbyingCostsDirective,
+  ExploreCanvasDirective,
 
   // services
   windowService,
@@ -159,6 +161,13 @@ define([
      * @method lorax/loraxApp~directive
      */
     .directive('loraxChartLobbyingCosts', ChartLobbyingCostsDirective)
+
+    /**
+     * Injects {@link lorax/directives/ChartLobbyingCostsDirective}
+     * as 'ChartLobbyingCostsDirective'
+     * @method lorax/loraxApp~directive
+     */
+    .directive('loraxExploreCanvas', ExploreCanvasDirective)
 
     /**
      * Inject {@link lorax/services/locationService} as 'locationService'
