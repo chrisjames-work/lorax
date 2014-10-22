@@ -92,11 +92,12 @@ define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
       //material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide });
       //var circle = new THREE.Mesh(geometry, material);
       var circle = new THREE.Sprite(material.clone());
-      lat = Math.round((Math.random() * 180 - 90) / 5 / 5) * 5;
-      lat += (Math.random() * 4) - 2;
-      lng = Math.round((((Math.random() * 360 - 180) / 6) - 90) / 5) * 5;
-      lng += (Math.random() * 4) - 2;
-      var point = new latLongTo3d(lat, lng, 100);
+      // lat = Math.round((Math.random() * 180 - 90) / 5 / 5) * 5;
+      // lat += (Math.random() * 4) - 2;
+      // lng = Math.round((((Math.random() * 360 - 180) / 6) - 90) / 5) * 5;
+      // lng += (Math.random() * 4) - 2;
+      // var point = new latLongTo3d(lat, lng, 100);
+      var point = new latLongTo3d((Math.random() * 180 - 90) / 3, Math.random() * 360 - 180, 100);
       circle.position.x = point.x;
       circle.position.y = point.y;
       circle.position.z = point.z;
@@ -114,28 +115,28 @@ define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
       circle.position.x = point.x;
       circle.position.y = point.y;
       circle.position.z = point.z;
-      scale = 2;
+      scale = 1;
       circle.scale.set(scale, scale, 0);
-      //container.add(circle);
+      container.add(circle);
       tags.push(circle);
     }
 
     material = material.clone();
-    for (i = 0; i < 200; i ++) {
+    for (i = 0; i < 300; i ++) {
       geometry = new THREE.CircleGeometry(5, 16);
-      material.opacity = 0.3;
+      material.opacity = 0.2;
       var circle = new THREE.Sprite(material);
       var point = new latLongTo3d(Math.random() * 180 - 90, Math.random() * 360 - 180, 100);
       circle.position.x = point.x;
       circle.position.y = point.y;
       circle.position.z = point.z;
-      scale = 1;
+      scale = 0.5;
       circle.scale.set(scale, scale, 0);
       container.add(circle);
     }
 
     material = new THREE.LineBasicMaterial({
-      color: 0x000000, opacity: 0.1
+      color: 0x000000, opacity: 0.1, transparent: true, fog: true
     });
 
     geometry = new THREE.Geometry();
@@ -144,15 +145,15 @@ define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
       origin = topics[i];
       for(var j = 0; j < 5; j ++) {
         dest = tags[Math.floor(Math.random() * tags.length)];
+        geometry = new THREE.Geometry();
         geometry.vertices.push(
-          new THREE.Vector3( origin.position.x, origin.position.y, origin.position.z - 1 ),
-          new THREE.Vector3( dest.position.x, dest.position.y, dest.position.z - 1 )
+          new THREE.Vector3( origin.position.x, origin.position.y, origin.position.z ),
+          new THREE.Vector3( dest.position.x, dest.position.y, dest.position.z )
         );
+        line = new THREE.Line( geometry, material, THREE.LinePieces );
+        container.add( line );
       }
     }
-
-    line = new THREE.Line( geometry, material, THREE.LinePieces );
-    container.add( line );
 
     function latLongTo3d(lat, long, radius) {
       // https://en.wikipedia.org/wiki/Spherical_coordinate_system
@@ -176,7 +177,7 @@ define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
 
     function render() {
       stats.begin();
-      // container.rotation.y += 0.0003;
+      container.rotation.y += 0.0006;
       // animateTopics();
       // checkMouseOver();
       renderer.render(scene, camera);
