@@ -66,9 +66,9 @@ define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
     var scene = new THREE.Scene();
     var renderer;
     if (Modernizr.webgl) {
-      renderer = new THREE.WebGLRenderer({alpha: true, antialias: false});
+      renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     } else {
-      renderer = new THREE.CanvasRenderer({alpha: true, antialias: false});
+      renderer = new THREE.CanvasRenderer({alpha: true, antialias: true});
     }
     renderer.setSize(w, h);
     var camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 10000);
