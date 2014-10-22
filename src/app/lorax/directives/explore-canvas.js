@@ -2,7 +2,7 @@
  * @fileOverview Explore canvas directive
  * @author <a href="mailto:leandroferreira@moco.to">Leandro Ferreira</a>
  */
-define(['explore/explore'], function (Explore) {
+define(['threejs', 'stats', 'modernizr'], function (THREE, Stats, Modernizr) {
   'use strict';
 
   /**
@@ -28,8 +28,8 @@ define(['explore/explore'], function (Explore) {
   {
     this._$scope = $scope;
 
-    this._explore = new Explore();
-    this._explore.init(true);
+    // this._explore = new Explore();
+    // this._explore.init(true);
   };
 
   /**
@@ -48,7 +48,176 @@ define(['explore/explore'], function (Explore) {
    * @param {object} controller Controller reference.
    */
   var ExploreCanvasLinkFn = function (scope, iElem, iAttrs, controller) {
-    controller._explore.setContainer(iElem);
+    var mouse = new THREE.Vector2();
+    var intersected;
+    var projector = new THREE.Projector();
+    var raycaster = new THREE.Raycaster();
+    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+    var stats = new Stats();
+    stats.setMode(0);
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
+    document.body.appendChild(stats.domElement);
+
+    var w = window.innerWidth;
+    var h = window.innerHeight / 1.5;
+    var scene = new THREE.Scene();
+    var renderer;
+    if (Modernizr.webgl) {
+      renderer = new THREE.WebGLRenderer({alpha: true, antialias: false});
+    } else {
+      renderer = new THREE.CanvasRenderer({alpha: true, antialias: false});
+    }
+    renderer.setSize(w, h);
+    var camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 10000);
+    camera.position.z = 250;
+    iElem.append(renderer.domElement);
+
+    var container = new THREE.Object3D();
+    scene.add(container);
+    // var geometry = new THREE.SphereGeometry(100, 16, 16);
+    // var material = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, side: THREE.DoubleSide } );
+    // var sphere = new THREE.Mesh( geometry, material );
+    // container.add( sphere );
+
+    var geometry, material, scale, i;
+    material = new THREE.SpriteMaterial( { map: THREE.ImageUtils.loadTexture( "images/circle.png" ) } );
+    geometry = new THREE.CircleGeometry(5, 16);
+
+    var lat, lng;
+    var topics = [];
+    for (i = 0; i < 25; i ++) {
+      //material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide });
+      //var circle = new THREE.Mesh(geometry, material);
+      var circle = new THREE.Sprite(material.clone());
+      lat = Math.round((Math.random() * 180 - 90) / 5 / 5) * 5;
+      lat += (Math.random() * 4) - 2;
+      lng = Math.round((((Math.random() * 360 - 180) / 6) - 90) / 5) * 5;
+      lng += (Math.random() * 4) - 2;
+      var point = new latLongTo3d(lat, lng, 100);
+      circle.position.x = point.x;
+      circle.position.y = point.y;
+      circle.position.z = point.z;
+      scale = (Math.random() * 2) + 3;
+      circle.scale.set(scale, scale, 0);
+      container.add(circle);
+      topics.push(circle);
+      circle.isInteractive = true;
+    }
+
+    var tags = [];
+    for (i = 0; i < 80; i ++) {
+      var circle = new THREE.Sprite(material);
+      var point = new latLongTo3d(Math.random() * 180 - 90, Math.random() * 360 - 180, 100);
+      circle.position.x = point.x;
+      circle.position.y = point.y;
+      circle.position.z = point.z;
+      scale = 2;
+      circle.scale.set(scale, scale, 0);
+      //container.add(circle);
+      tags.push(circle);
+    }
+
+    material = material.clone();
+    for (i = 0; i < 200; i ++) {
+      geometry = new THREE.CircleGeometry(5, 16);
+      material.opacity = 0.3;
+      var circle = new THREE.Sprite(material);
+      var point = new latLongTo3d(Math.random() * 180 - 90, Math.random() * 360 - 180, 100);
+      circle.position.x = point.x;
+      circle.position.y = point.y;
+      circle.position.z = point.z;
+      scale = 1;
+      circle.scale.set(scale, scale, 0);
+      container.add(circle);
+    }
+
+    material = new THREE.LineBasicMaterial({
+      color: 0x000000, opacity: 0.1
+    });
+
+    geometry = new THREE.Geometry();
+    var line, origin, dest;
+    for (i = 0; i < topics.length; i ++) {
+      origin = topics[i];
+      for(var j = 0; j < 5; j ++) {
+        dest = tags[Math.floor(Math.random() * tags.length)];
+        geometry.vertices.push(
+          new THREE.Vector3( origin.position.x, origin.position.y, origin.position.z - 1 ),
+          new THREE.Vector3( dest.position.x, dest.position.y, dest.position.z - 1 )
+        );
+      }
+    }
+
+    line = new THREE.Line( geometry, material, THREE.LinePieces );
+    container.add( line );
+
+    function latLongTo3d(lat, long, radius) {
+      // https://en.wikipedia.org/wiki/Spherical_coordinate_system
+      var phi = (lat + 90) * Math.PI / 180; // to radians
+      var theta = (long + 180) * Math.PI / 180; // to radians
+      var sinPhi = Math.sin(phi);
+
+      var point = new THREE.Vector3();
+      point.x = radius * Math.cos(theta) * sinPhi;
+      point.z = radius * Math.sin(theta) * sinPhi;
+      point.y = radius * Math.cos(phi);
+
+      return point;
+    }
+
+    function uvToLatLong(u, v) {
+      var lat = v * 180 - 90;
+      var long = u * 360 - 180;
+      return [long, lat];
+    }
+
+    function render() {
+      stats.begin();
+      // container.rotation.y += 0.0003;
+      // animateTopics();
+      // checkMouseOver();
+      renderer.render(scene, camera);
+      requestAnimationFrame(render);
+      stats.end();
+    }
+    render();
+
+    function checkMouseOver() {
+      var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+      projector.unprojectVector( vector, camera );
+      raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+      var intersects = raycaster.intersectObjects( container.children );
+      if ( intersects.length > 0) {
+        for (var i = 0; i < intersects.length; i ++) {
+          if (intersected != intersects[i].object && intersects[i].object.isInteractive) {
+            if ( intersected ) intersected.material.opacity = 1;
+            intersected = intersects[i].object;
+            intersected.material.opacity = 0.5;
+          }
+        }
+      } else {
+        if ( intersected ) intersected.material.opacity = 1;
+        intersected = null;
+      }
+    }
+
+    function animateTopics() {
+      var circle;
+      for (var i = 0; i < topics.length; i ++) {
+        circle = topics[i];
+
+      }
+    };
+
+    function onDocumentMouseMove(event) {
+      event.preventDefault();
+
+      mouse.x = ( (event.clientX + $(window).scrollLeft() - $('#explore').position().left) / window.innerWidth ) * 2 - 1;
+      mouse.y = - ( (event.clientY + $(window).scrollTop() - $('#explore').position().top) / window.innerHeight ) * 2 + 1;
+    }
   };
 
   return ExploreCanvasDirective;

@@ -16,8 +16,8 @@
       'pubsub': '../bower_components/jquery-tiny-pubsub/src/tiny-pubsub',
       'utils': '../scripts/utils',
       'pixi': '../bower_components/pixi/bin/pixi',
-      'stats': '../bower_components/stats.js/build/stats.min',
-      'explore': '../scripts/explore'
+      'threejs': '../bower_components/threejs/build/three.min',
+      'stats': '../bower_components/stats.js/build/stats.min'
     },
 
     include: ['lorax/lorax-app'],
@@ -43,6 +43,9 @@
       },
       'stats': {
         exports: 'Stats'
+      },
+      'threejs': {
+        exports: 'THREE'
       }
     },
 
